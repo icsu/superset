@@ -31,7 +31,6 @@ import React, {
   useReducer,
   Reducer,
 } from 'react';
-import { useHistory } from 'react-router-dom';
 import { setItem, LocalStorageKeys } from 'src/utils/localStorageHelpers';
 import { UploadChangeParam, UploadFile } from 'antd/lib/upload/interface';
 import Tabs from 'src/components/Tabs';
@@ -137,6 +136,7 @@ interface DatabaseModalProps {
   show: boolean;
   databaseId: number | undefined; // If included, will go into edit mode
   dbEngine: string | undefined; // if included goto step 2 with engine already set
+  history?: any;
 }
 
 export enum ActionType {
@@ -509,6 +509,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
   show,
   databaseId,
   dbEngine,
+  history,
 }) => {
   const [db, setDB] = useReducer<
     Reducer<Partial<DatabaseObject> | null, DBReducerActionType>
@@ -525,7 +526,6 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
     t('database'),
     addDangerToast,
   );
-  const history = useHistory();
 
   const [tabKey, setTabKey] = useState<string>(DEFAULT_TAB_KEY);
   const [availableDbs, getAvailableDbs] = useAvailableDatabases();
@@ -640,6 +640,14 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
     setPasswords({});
     setConfirmedOverwrite(false);
     onHide();
+  };
+
+  const redirectURL = (url: string) => {
+    if (!isEmpty(history)) {
+      history?.push(url);
+    } else {
+      window.location.href = url;
+    }
   };
 
   // Database import logic
@@ -1334,23 +1342,21 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
   const renderCTABtns = () => (
     <StyledBtns>
       <Button
-        // eslint-disable-next-line no-return-assign
         buttonStyle="secondary"
         onClick={() => {
           setLoading(true);
           fetchAndSetDB();
-          history.push('/dataset/add/');
+          redirectURL('/dataset/add/');
         }}
       >
         {t('CREATE DATASET')}
       </Button>
       <Button
         buttonStyle="secondary"
-        // eslint-disable-next-line no-return-assign
         onClick={() => {
           setLoading(true);
           fetchAndSetDB();
-          history.push(`/superset/sqllab/?db=true`);
+          redirectURL(`/superset/sqllab/?db=true`);
         }}
       >
         {t('QUERY DATA IN SQL LAB')}
